@@ -64,7 +64,56 @@ Se toman los valores de la primera fila que es el nivel bajo.
 Busco el rango que me dé la mayor probabilidad de los gastos en alimentos no saludables.
 
 
-Punto 4. Plantea hipótesis estadísticas y concluye sobre ellas para entender el problema en México
+### Punto 4. Plantea hipótesis estadísticas y concluye sobre ellas para entender el problema en México
+
+
+En este punto vamos a plantear algunas hipótesis.
+
+
+Para todas las hipótesis se toma un nivel de confianza del 95%, es decir, significancia de 0.05.
+
+
+La primera es “El promedio del gasto en alimentos saludables cuando existe un ingreso extra es igual al promedio de gastos en alimentos saludables cuando no existe un ingreso extra”.
+
+
+Aquí lo que nos están dando es la hipótesis nula, por lo tanto, la hipótesis alternativa es que los promedios de gastos en alimentos saludables sean diferentes.
+
+
+```r
+"Hipótesis: El promedio del gasto en alimentos saludables cuando existe un ingreso extra es igual
+al promedio de gastos en alimentos saludables cuando no existe un ingreso extra"
+# H0: mean(df$ln_als[df$refin == "Sí"]) == mean(df$ln_als[df$refin = "No"])
+# HA: mean(df$ln_als[df$refin == "Sí"]) != mean(df$ln_als[df$refin = "No"])
+
+var.test(df[df$refin == "Sí", "ln_als"],
+        df[df$refin == "No", "ln_als"],
+        ratio = 1, alternative = "two.sided")
+```
+
+Primero tenemos que identificar si las varianzas son iguales o no.
+
+```r
+var.test(df[df$refin == "Sí", "ln_als"],
+		 df[df$refin == "No", "ln_als"],
+		 ratio = 1, alternative = "two.sided")
+	#Variables distintas
+	#El p-value es menor al nivel de significancia (que es 0.05) por lo tanto 
+	#se rechaza la hipotesis nula a favor de la alternativa
+```
+
+El p value que obtenemos es menor al nivel de significancia, por lo tanto, para la comparación de variables, se rechaza la hipótesis nula a favor de la alternativa (dado que las variables son distintas).
+
+Ahora calculamos el t de student agregando la opción “two-sided” porque la hipótesis se trata de una igualdad, y var.equal como “False” porque las varianzas son distintas.
+
+```r
+#Se asigna el valor FALSE a var.equal porque se rechazó la hipotesis nula anterior
+	t.test(df[df$refin == "Sí", "ln_als"],
+	       df[df$refin == "No", "ln_als"],
+	       mu = 0, alternative = "two.sided", var.equal = FALSE)
+```
+
+Como p-value es menor al nivel de significancia, existe evidencia estadística para rechazar Ho, es decir, que el gasto promedio de alimentos saludables cuando se tiene un ingreso extra es distinto que cuando no se tiene un ingreso extra.
+
 
 ### Punto 5. Estima un modelo de regresión, lineal o logístico, para identificar los determinantes de la inseguridad alimentaria en México.
 
