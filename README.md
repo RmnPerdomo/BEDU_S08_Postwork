@@ -22,3 +22,4 @@ La base de datos contiene las siguientes variables:
         
 
 ![gráfica del resumen estadístico](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/figs/s08_postwork_summary.png)
+![gráfica del gasto en alimentos saludables y no saludables](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/figs/s08_postwork_corr.png)
