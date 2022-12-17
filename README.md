@@ -114,10 +114,6 @@ Aquí lo que nos están dando es la hipótesis nula, por lo tanto, la hipótesis
 al promedio de gastos en alimentos saludables cuando no existe un ingreso extra"
 # H0: mean(df$ln_als[df$refin == "Sí"]) == mean(df$ln_als[df$refin = "No"])
 # HA: mean(df$ln_als[df$refin == "Sí"]) != mean(df$ln_als[df$refin = "No"])
-
-var.test(df[df$refin == "Sí", "ln_als"],
-        df[df$refin == "No", "ln_als"],
-        ratio = 1, alternative = "two.sided")
 ```
 
 Primero tenemos que identificar si las varianzas son iguales o no.
