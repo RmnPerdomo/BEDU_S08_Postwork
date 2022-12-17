@@ -66,8 +66,56 @@ Busco el rango que me dé la mayor probabilidad de los gastos en alimentos no sa
 
 Punto 4. Plantea hipótesis estadísticas y concluye sobre ellas para entender el problema en México
 
-Punto 5. Estima un modelo de regresión, lineal o logístico, para identificar los determinantes 
-de la inseguridad alimentaria en México
+### Punto 5. Estima un modelo de regresión, lineal o logístico, para identificar los determinantes de la inseguridad alimentaria en México.
 
+Para este punto, como la variable que se pretende describir es la inseguridad alimentaria (variable categórica) se propone un modelo de regresión logística con la inseguridad alimentaria como variable dependiente y el resto de las variables como variables independientes. Para ello se usa la función `glm` (generalized linear model) que viene en el paquete _stats_.
+
+```r
+        model <- glm(data = df,
+                     IA ~ nse5f + area + refin + sexoje + numpeho + edadjef + añosedu + ln_als + ln_alns,
+                     family = binomial)
+
+        summary(model)
+```
+
+Con la función `summary`, observamos que la variable edad no contribuye significativamente al modelo, puesto que el _p-value_ de esta variable es mayor a la significancia así que se procede a descartarla.
+
+```r
+        model2 <- update(model, ~. - edadjef)
+        
+        summary(model2)
+```
+
+Como se puede observar, la variable _edad_ es la única descartable ya que el resto sí aporta información al modelo.
+
+Posteriormente, para probar la eficacia el modelo extraemos 200 datos al azar de nuestra muestra y predecimos los resultados arrojados por  nuestro modelo con la función `predict`,
+
+```r
+        data.test <- df[sample(nrow(df), 200), ]
+
+        pred <- predict(model2, newdata = data.test, type = "response")
+```
+
+Convertimos los resultados predichos a factores con base en si la probabilidad es mayor o menor a 0.5 y se crea una tabla comparando los resultados predichos con los datos reales,
+
+```r
+        data.pred <- ifelse(pred > 0.5, "Sí", "No")
+
+
+        conf.matrix <- table(Predicción = data.pred,
+                             Real = data.test$IA)
+
+        conf.matrix
+```
+
+Y por último, contamos la proporción de los aciertos (aquellos que se encuentran en la diagonal de nuestra tabla) y los errores predichos por el modelo (falsos positivos, falsos negativos, etc).
+
+```r
+        aciertos <- sum(diag(conf.matrix))/sum(conf.matrix)
+        errores <- 1 - aciertos
+
+        aciertos; errores
+```
+Con esto, encontramos que nuestro modelo reproduce correctamente cerca del 74% de los datos.
 
 
