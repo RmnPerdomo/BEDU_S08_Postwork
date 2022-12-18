@@ -21,9 +21,6 @@ La base de datos contiene las siguientes variables:
   - IA (Inseguridad alimentaria en el hogar): 0 "No presenta IA", 1 "Presenta IA".
         
 
-![gráfica del resumen estadístico](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/figs/s08_postwork_summary.png)
-![gráfica del gasto en alimentos saludables y no saludables](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/figs/s08_postwork_corr.png)
-
 
 ### Punto 1 Plantea el problema del caso.
 
@@ -249,6 +246,8 @@ Generamos un resumen de las imágenes que se guarda en el disco duro.
 ggsave(plot = gplot, file = "s08_postwork_summary.png", width = 12, height = 9)
 ```
 
+![gráfica del resumen estadístico](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/figs/s08_postwork_summary.png)
+
 Calculamos la correlación entre el gasto de alimentos saludables y no saludables con base en el nivel socioeconómico, recursos extras y la inseguridad alimentaria.
 
 ```r
@@ -308,6 +307,7 @@ gplot <- (lnals_nse5f + lnals_refin + lnals_ia) / (lnalns_nse5f + lnalns_refin +
 
 ggsave(plot = gplot, file = "s08_postwork_corr.png", width = 10, height = 7)
 ``` 
+![gráfica del gasto en alimentos saludables y no saludables](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/figs/s08_postwork_corr.png)
 
 ### Punto 3. Calcula probabilidades que nos permitan entender el problema en México
 
