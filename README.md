@@ -32,48 +32,282 @@ a) Determinar el gasto en alimentos saludables y no saludables con base en su ni
 b) Proponer un modelo para identificar los determinantes socioeconómicos de la inseguridad alimentaria.
 c) Probar/desechar que a menor nivel socioeconómico mayor es el consumo en alimentos no saludables.
 
-Para poder trabajar con los datos es necesario importar las librerías correspondientes. Después se realiza la lectura de datos y se asigna a un data frame.
+Para poder trabajar con los datos es necesario importar las librerías correspondientes. 
+```r
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+library(moments)
+```
+
+Después se realiza la lectura de datos y se asigna a un data frame.
+
+```r
+df <- read.csv("https://raw.githubusercontent.com/dnsmartinez/BEDU_S08_Postwork/e2b511147eabce95504b068b14b26a0845beb450/inseguridad_alimentaria_bedu.csv")
+```
 
 Se realiza la limpieza de datos. En el data frame Casos.completos se asignan únicamente los registros que no tengan datos faltantes usando la función complete.cases.
+
+```r
+Casos.completos <- sum(complete.cases(df))
+print(paste(Casos.completos, "datos completos de", nrow(df), "datos totales."))
+df <- df[complete.cases(df), ]
+```
 
 A pesar de que se reducen a la mitad los elementos de la muestra sigue siendo una muestra aceptable para el análisis.
 
 #### Transformación de variables
 Las variables categóricas (que son si o no, hombre o mujer, nivel socioeconómico) se transforman en factores. En este caso se transformaron las variables Nivel socieconómico, Zona geográfica, Recursos financieros distintos al ingreso laboral, Sexo del jefe/a de familia e Inseguridad alimentaria en el hogar.
 
+```r
+df$nse5f <- factor(df$nse5f, labels = c("Bajo", "Medio bajo", "Medio", "Medio alto", "Alto"))
+df$area <- factor(df$area, labels = c("Urbana", "Rural"))
+df$refin <- factor(df$refin, labels = c("No", "Sí"))
+df$sexoje <- factor(df$sexoje, labels = c("Hombre", "Mujer"))
+df$IA <- factor(df$IA, labels = c("No", "Sí"))
+```
+
 Se hace el cambio a factores para facilitar la lectura de datos a R y aplicar las herramientas estadísticas adecuadas.
 
 Al final se muestra como quedaron los datos en el data frame.
 
+```r
+str(df)
+```
+
 ### Punto 2. Realiza un análisis descriptivo de la información (Sesión 3)
 
-Con table agrupamos las categorías y contamos cuántos datos hay de la misma. Se realiza este paso para las variables categóricas. Con el transform obtenemos las frecuencias relativas. 
+Con table agrupamos las categorías y contamos cuántos datos hay de la misma. Se realiza este paso para las variables categóricas. Con transform obtenemos las frecuencias relativas. 
+
+```r
+ia.freq <- table(df$IA)
+ia.freq <- transform(ia.freq, Freq.rel = prop.table(Freq))
+
+area.freq <- table(df$area)
+area.freq <- transform(area.freq, Freq.rel = prop.table(Freq))
+
+sexo.freq <- table(df$sexoje)
+sexo.freq <- transform(sexo.freq, Freq.rel = prop.table(Freq))
+
+refin.freq <- table(df$refin)
+refin.freq <- transform(refin.freq, Freq.rel = prop.table(Freq))
+
+nse5f.freq <- table(df$nse5f)
+nse5f.freq <- transform(nse5f.freq, Freq.rel = prop.table(Freq))
+```
 
 Imprimimos las probabilidades que acabamos de calcular así como las medias y desviaciones estándar de los logaritmos naturales del gasto en alimentos saludables y no saludables.
 
+```r
+ia.freq
+area.freq
+sexo.freq
+refin.freq
+nse5f.freq
+
+mean(df$ln_als)
+mean(df$ln_alns)
+sd(df$ln_als)
+sd(df$ln_alns)
+```
+
 Al final mostramos los distintos estadísticos descriptivos.
 
-Histogramas y gráficas con el resumen de los datos
+```r
+summary(df)
+```
 
-A continuación se muestran los histogramas y gráficas con el resumen de los datos.
+#### Histogramas y gráficas con el resumen de los datos
 
-Para las variables categóricas utilizamos donut_chart y para las variables cualitativas discretas y continuas usamos bar_plots e histograms.
+A continuación se muestran los histogramas y gráficas con el resumen de los datos. Para las variables categóricas utilizamos donut_chart y para las variables cualitativas discretas y continuas usamos bar_plots e histograms.
 
-Gasto en alimentos saludables
+#### Gasto en alimentos saludables y no saludables
 
-En la gráfica del gasto en alimentos saludables, se observa que los datos tienen un sesgo a la izquierda y que la gráfica es leptocurtica.
+En la gráfica del gasto en alimentos saludables, se observa que los datos tienen un sesgo a la izquierda y que la gráfica es leptocurtica. En la gráfica del gasto en alimentos no saludables, se observa que los datos tienden a una distribución normal, simétrica y platicúrtica. Todas las paletas de colores usadas en las gráficas son amigables con las personas que padecen de algún problema de daltonismo usando las paletas de colorBrewer.
 
-Gasto en alimentos no saludables
+```r
+# Histogramas y gráficas con el resumen de los datos
+# Insuficiencia alimentaria (donut chart)
+gplot_ia <- ggplot(data = ia.freq, aes(x = 1, y = Freq.rel, fill = Var1)) +
+	theme_void() +
+	geom_col() +
+	coord_polar(theta = "y") +
+	xlim(c(-0.25, 1.5)) + 
+	geom_text(aes(label = paste(round(Freq.rel, 2), "%")), 
+		position = position_stack(vjust = 0.5), 
+		show.legend = FALSE) +
+	scale_fill_brewer(name = "Inseguridad Alimentaria", palette = "Set1") +
+	theme(legend.position = "top")
 
-En la gráfica del gasto en alimentos no saludables, se observa que los datos tienden a una distribución normal, simétrica y platicúrtica. 
+# Número de personas en el hogar (histograma)
+gplot_numpeho <- ggplot(data = df, aes(x = numpeho, y = after_stat(count/sum(count)))) +
+	theme_classic() +
+	geom_histogram(aes(color = "2", fill = "1"), binwidth = 1) +
+	geom_boxplot(aes(y = 0.42, color = "2", fill = "1"), width = 0.12) +
+	labs(x = "# Personas en el hogar", y = "% Población") +
+	scale_fill_brewer(palette = "Paired", guide = "none", aesthetics = c("color", "fill"))
 
-Todas las paletas de colores usadas en las gráficas son amigables con las personas que padecen de algún problema de daltonismo usando las paletas de colorBrewer
+# Edad del jefe de familia (histograma)
+gplot_edad <- ggplot(data = df, aes(x = edadjef, y = after_stat(count/nrow(df)))) +
+	theme_classic() +
+	geom_histogram(aes(color = "4", fill = "3"), binwidth = 5) +
+	geom_boxplot(aes(y = 0.245, color = "4", fill = "3"), width = 0.07) +
+	labs(x = "Edad del jefe del hogar", y = "% Población") +
+	scale_fill_brewer(palette = "Paired", guide = "none", limits = factor(1:8),
+		 aesthetics = c("color", "fill"))
+
+# Años de estudio del jefe de familia (histograma)
+gplot_edu <- ggplot(data = df, aes(x = añosedu, y = after_stat(count/nrow(df)))) +
+	theme_classic() +
+	geom_bar(aes(color = "6", fill = "5")) +
+	labs(x = "Años de educación", y = "% Población") +
+	scale_fill_brewer(palette = "Paired", guide = "none", limits = factor(1:8),
+		 aesthetics = c("color", "fill"))
+
+# Zona geográfica (donut chart)
+gplot_area <- ggplot(data = area.freq, aes(x = 1, y = Freq.rel, fill = Var1)) +
+	theme_void() +
+	geom_col() +
+	coord_polar(theta = "y") +
+	xlim(c(-0.25, 1.5)) + 
+	geom_text(aes(label = paste(round(Freq.rel, 2), "%")), 
+		 position = position_stack(vjust = 0.5), 
+		 show.legend = FALSE) +
+	scale_fill_brewer(name = "Zona geográfica", palette = "Dark2") +
+	theme(legend.position = "top")
+
+# Sexo del jefe de familia (donut chart)
+gplot_sexo <- ggplot(data = sexo.freq, aes(x = 1, y = Freq.rel, fill = Var1)) +
+	theme_void() +
+	geom_col() +
+	coord_polar(theta = "y") +
+	xlim(c(-0.25, 1.5)) + 
+	geom_text(aes(label = paste(round(Freq.rel, 2), "%")), 
+		 position = position_stack(vjust = 0.5), 
+		 show.legend = FALSE) +
+	scale_fill_brewer(name = "Sexo", palette = "Accent") +
+	theme(legend.position = "top")
+
+# Recursos extras al ingreso (donut chart)
+gplot_refin <- ggplot(data = refin.freq, aes(x = 1, y = Freq.rel, fill = Var1)) +
+	theme_void() +
+	geom_col() +
+	coord_polar(theta = "y") +
+	xlim(c(-0.25, 1.5)) + 
+	geom_text(aes(label = paste(round(Freq.rel, 2), "%")), 
+		 position = position_stack(vjust = 0.5), 
+		 show.legend = FALSE) +
+	scale_fill_brewer(name = "Recursos extras", palette = "Set2") +
+	theme(legend.position = "top")
+
+# Nivel socioeconómico (barplot)
+gplot_nse5f <- ggplot(data = df, aes(x = nse5f, y = after_stat(count/nrow(df)))) +
+	theme_classic() +
+	geom_bar(aes(fill = nse5f), color = "gray") +
+	labs(x = "Nivel socioeconómico", y = "% población") +
+	scale_x_discrete(labels = NULL) +
+	scale_fill_brewer(palette = "Set2",
+			 aesthetics = c("color", "fill"), name = NULL) +
+	guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+	theme(legend.position = "right")
+
+# Gasto en alimentos saludables (histograma)
+(kns = ceiling(1+3.3*log10(length(df$ln_als))))
+skewness(df$ln_als) # Esto indica sesgo a la izquierda
+kurtosis(df$ln_als) # Mayor a 3 es leptocúrtica
+	
+gplot_lnals <- ggplot(data = df, aes(x = ln_als, y = after_stat(count/nrow(df)))) +
+		theme_classic() +
+		geom_histogram(aes(color = "8", fill = "7"),  bins = kns) +
+		geom_boxplot(aes(y = 0.525, color = "8", fill = "7"), width = 0.15) +
+		labs(x = "Gasto en alimentos saludables", y = "% Población") +
+		scale_fill_brewer(palette = "Paired", guide = "none", limits = factor(1:8), aesthetics = c("color", "fill"))
+	
+# Gasto en alimentos no saludables (histograma)
+(kns = ceiling(1+3.3*log10(length(df$ln_alns))))
+skewness(df$ln_alns) # Esto indica que es simétrica (no hay sesgo)
+kurtosis(df$ln_alns) # Menor a 3 es platicúrtica
+	
+gplot_lnalns <- ggplot(data = df, aes(x = ln_alns, y = after_stat(count/nrow(df)))) +
+		theme_classic() +
+		geom_histogram(aes(color = "10", fill = "9"), bins = kns) +
+		geom_boxplot(aes(y = 0.315, color = "10", fill = "9"), width = 0.09) +
+		labs(x = "Gasto en alimentos no saludables", y = "% Población") +
+		scale_fill_brewer(palette = "Paired", guide = "none", limits = factor(1:10), aesthetics = c("color", "fill"))
+
+gplot <- (gplot_ia | gplot_area | gplot_sexo | gplot_refin) / 
+	(plot_spacer() | gplot_nse5f | gplot_edu | plot_spacer()) /
+	(gplot_numpeho | gplot_edad | gplot_lnals | gplot_lnalns) +
+	plot_annotation(title = "Inseguridad alimentaria en México", subtitle = "Resumen estadístico de la muestra") +
+	plot_layout(heights = c(2, 1, 2))
+```
 
 Generamos un resumen de las imágenes que se guarda en el disco duro.
 
+```r
+#Resumen de imagenes que se guarda en el disco duro
+ggsave(plot = gplot, file = "s08_postwork_summary.png", width = 12, height = 9)
+```
+
 Calculamos la correlación entre el gasto de alimentos saludables y no saludables con base en el nivel socioeconómico, recursos extras y la inseguridad alimentaria.
 
-Como las variables son categóricas se transforman a datos numéricos 
+```r
+# Correlación entre el gasto de alimentos saludables y no saludables con base en el nivel socioeconómico, 
+#recursos extras y la inseguridad alimentaria
+
+df.select <- select(df, ln_als, ln_alns, edadjef, numpeho, añosedu)
+round(cor(df.select), 2)
+	
+cor(df$ln_als, as.numeric(df$nse5f), method="spearman")
+cor(df$ln_als, as.numeric(df$refin), method="spearman")
+cor(df$ln_als, as.numeric(df$IA), method="spearman")
+
+pairs(~ ln_alns + nse5f + refin + IA, data = df, gap = 0.4, cex.labels = 1.5)
+
+# Gráfica de correlación
+
+lnals_nse5f <- ggplot(data = df, aes(x = nse5f, y = ln_als)) +
+		theme_classic() + 
+		geom_boxplot(aes(fill = nse5f, color = nse5f), alpha = 0.5, outlier.alpha = 0.3) +
+		labs(x = "", y = "Gasto en alimentos saludables") +
+		scale_fill_brewer(palette = "Set1", guide = "none", aesthetics = c("fill", "color"))
+
+lnals_refin <- ggplot(data = df, aes(x = refin, y = ln_als)) +
+		theme_classic() + 
+		geom_boxplot(aes(fill = refin, color = refin), alpha = 0.5, outlier.alpha = 0.3) +
+		labs(x = "", y = "") +
+		scale_fill_brewer(palette = "Set2", guide = "none", aesthetics = c("fill", "color"))
+
+lnals_ia <- ggplot(data = df, aes(x = IA, y = ln_als)) +
+		theme_classic() + 
+		geom_boxplot(aes(fill = IA, color = IA), alpha = 0.5, outlier.alpha = 0.3) +
+		labs(x = "", y = "") +
+		scale_fill_brewer(palette = "Accent", guide = "none", aesthetics = c("fill", "color"))
+
+lnalns_nse5f <- ggplot(data = df, aes(x = nse5f, y = ln_alns)) +
+		theme_classic() + 
+		geom_boxplot(aes(fill = nse5f, color = nse5f), alpha = 0.5, outlier.alpha = 0.3) +
+		labs(x = "Nivel socioeconómico", y = "Gasto en alimentos no saludables") +
+		scale_fill_brewer(palette = "Set1", guide = "none", aesthetics = c("fill", "color"))
+
+lnalns_refin <- ggplot(data = df, aes(x = refin, y = ln_alns)) +
+		theme_classic() + 
+		geom_boxplot(aes(fill = refin, color = refin), alpha = 0.5, outlier.alpha = 0.3) +
+		labs(x = "Recursos extra al ingreso", y = "") +
+		scale_fill_brewer(palette = "Set2", guide = "none", aesthetics = c("fill", "color"))
+
+lnalns_ia <- ggplot(data = df, aes(x = IA, y = ln_alns)) +
+		       theme_classic() + 
+		       geom_boxplot(aes(fill = IA, color = IA), alpha = 0.5, outlier.alpha = 0.3) +
+		       labs(x = "Inseguridad alimentaria", y = "") +
+		       scale_fill_brewer(palette = "Accent", guide = "none", aesthetics = c("fill", "color"))
+
+gplot <- (lnals_nse5f + lnals_refin + lnals_ia) / (lnalns_nse5f + lnalns_refin + lnalns_ia) +
+		plot_annotation(title = "Inseguridad alimentaria en México",
+		subtitle = "Gasto en alimentos saludables y no saludables")
+
+ggsave(plot = gplot, file = "s08_postwork_corr.png", width = 10, height = 7)
+``` 
 
 ### Punto 3. Calcula probabilidades que nos permitan entender el problema en México
 
