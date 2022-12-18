@@ -80,20 +80,54 @@ Como las variables son categóricas se transforman a datos numéricos
 Se usarán las variables nivel socioeconómico (nse5f) y el gasto en alimentos no saludables (ln_alns) para buscar la probabilidad de la relación del nivel socioeconómico bajo contra el intervalo de gastos en alimentos no saludables.
 
 Obtenemos la media, desviación estándar, valor máximo y valor mínimo de la variable del gasto en alimentos no saludables. 
-
+```r
+	media<-mean(df$ln_alns)   # 4.11
+	desv_est<-sd(df$ln_alns)  # 1.041
+	mayor<-max(df$ln_alns)    # 8.29
+	menor<-min(df$ln_alns)    # 0
+```
 Hacemos grupos de cuatro partes
-
+```r
+        grupos<-5    # para dividir en cuatro partes CUARTILES
+```
 Agrupamos el gasto de alimentos no saludables en los grupos previamente generados.
+```r
+	 intervalos_alns<-cut(df$ln_alns,breaks=seq(menor,mayor, length=grupos), include.lowest=TRUE)
 
+```
 Elaboramos la primera tabla de frecuencia de los datos agrupados en intervalos. 
+```r
+  tabla1<-table(df$nse5f, intervalos_alns)
+```
 
 Luego hacemos una tabla cruzada con los datos del nivel socioeconómico con los gastos ahora en intervalos.
+```r
+	tabla2<-round(prop.table(tabla1),6)
+```
+
+|	NIVEL       |[0,2.07] |(2.07,4.15] |(4.15,6.22] |(6.22,8.3]|
+|-------------------|---------|------------|------------|----------|
+|	Bajo        |0.003304 |   **0.123866** |   0.046696 |  0.001331|
+|	Medio bajo  |0.001923 |   0.119428 |   0.070562 |  0.001726|
+|	Medio       |0.001282 |   0.115680 |   0.083531 |  0.002613|
+|	Medio alto  |0.000888 |   0.106213 |   0.103057 |  0.005030|
+|	Alto        |0.000592 |   0.075296 |   0.124901 |  0.012081|
 
 Se toman los valores de la primera fila que es el nivel bajo.
 
 Busco el rango que me dé la mayor probabilidad de los gastos en alimentos no saludables.
+```r
+	prob_rango1<-pnorm(2.07, mean=media, sd=desv_est) - pnorm(0, mean=media, sd=desv_est)     #.0245
+	prob_rango2<-pnorm(4.15, mean=media, sd=desv_est) - pnorm(2.07, mean=media, sd=desv_est)  #.4873   ***
+	prob_rango3<-pnorm(6.22, mean=media, sd=desv_est) - pnorm(4.15, mean=media, sd=desv_est)  #.4662
+	prob_rango4<-pnorm(8.3, mean=media, sd=desv_est) - pnorm(6.22, mean=media, sd=desv_est)   #.0217
+```
+La probabilidad mas alta es la del rango entre 2.07 y 4.15 con un valor de **.4873**
 
+ Como se puede observar la Probabilidad de gasto en Alimentos No Saludables es Mayor en personas
+con Nivel Socioeconomico **BAJO** con un valor de **.1238**.
 
+Esto es uno de los problemas actuales en Mexico.
 ### Punto 4. Plantea hipótesis estadísticas y concluye sobre ellas para entender el problema en México
 
 
