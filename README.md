@@ -1,5 +1,7 @@
 # BEDU-Santander: Proyecto final
 
+Link al código en R: [Postwork 8](https://github.com/dnsmartinez/BEDU_S08_Postwork/blob/main/Postworks/Postwork8.R)
+
 ## Problema: "Análisis de la Inseguridad Alimentaria en México"               
 
 Un centro de salud nutricional está interesado en analizar estadísticamente y probabilísticamente los patrones de gasto en alimentos saludables y no saludables en los hogares mexicanos con base en su nivel socioeconómico, en si el hogar tiene recursos financieros extras al ingreso y en si presenta o no inseguridad alimentaria. Además, está interesado en un modelo que le permita identificar los determinantes socioeconómicos de la inseguridad alimentaria.
